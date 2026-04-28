@@ -16,7 +16,8 @@ date_matches = pat.match(date_string)
 # should extract a match where the first group is the number, the second the street, the
 # third the city, the fourth the state and the fifth the zip code
 address_string = "2501 Addison Street\nChicago, IL 60618"
-pat = re.compile("(?<number>\d+) (?<street>\w+)", re.IGNORECASE)
+pat = re.compile("(?<number>\d+) (?<street>.+)\n(?<city>\w+), (?<state>\w+) (?<zip>\d+)
+", re.IGNORECASE)
 address_matches = pat.match(address_string)
 
 # problem 3
