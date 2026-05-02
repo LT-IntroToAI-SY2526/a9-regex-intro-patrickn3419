@@ -18,18 +18,29 @@ def get_page_html(title: str) -> str:
     
 
 def get_page_html(title: str) -> str:
-    response = requests.get(
-        "https://en.wikipedia.org/w/api.php",
-        params={
-            "action": "parse",
-            "page": title,
-            "prop": "text",
-            "format": "json",
-        },
-        headers={"User-Agent": "intro-ai-class/1.0"}
-    )
-    data = response.json()
-    return data["parse"]["text"]["*"]
+    for attempt in range(5):
+        response = requests.get(
+            "https://en.wikipedia.org/w/api.php",
+            params={
+                "action": "parse",
+                "page": title,
+                "prop": "text",
+                "format": "json",
+                "redirects": True,
+            },
+            headers={"User-Agent": "intro-ai-class/1.0"}
+        )
+        if response.status_code == 429:
+            wait = int(response.headers.get("Retry-After", 5))
+            print(f"Rate limited — waiting {wait}s before retrying '{title}'...")
+            time.sleep(wait)
+            continue
+        if response.status_code == 200 and response.text.strip():
+            data = response.json()
+            if "error" not in data:
+                time.sleep(2)  # polite delay after every successful call
+                return data["parse"]["text"]["*"]
+    raise ConnectionError(f"Could not retrieve Wikipedia page for '{title}' after 5 attempts")
 
 
 def get_first_infobox_text(html: str) -> str:
